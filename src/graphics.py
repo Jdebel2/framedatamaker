@@ -1,6 +1,7 @@
-from tkinter import Tk, Canvas, BOTH, PhotoImage, Label, NW, Button
+from tkinter import Tk, Canvas, BOTH, PhotoImage, NW, Button, Label
+from tkinter.filedialog import askopenfilename
+from PIL import Image, ImageTk
 from enum import Enum
-
 
 class ButtonFunction(Enum):
     NEW=1
@@ -13,8 +14,7 @@ class Window():
         self.__root.title("Frame Data Maker")
         self.__canvas = Canvas(self.__root, {"bg": "black"}, height=height, width=width)
         self.__canvas.pack(fill=BOTH, expand=1)
-        self.__running = False
-        self.__root.protocol("WM_DELETE_WINDOW", self.close)
+        self.__root.protocol("WM_DELETE_WINDOW", self.__root.destroy)
 
 
     def get_root(self):
@@ -23,26 +23,16 @@ class Window():
 
     def draw_image(self, image, x, y):
         self.__canvas.create_image(x,y,anchor=NW,image=image)
+        self.__canvas.pack()
 
 
     def draw_button(self, btn, x, y):
         btn.place(x=x, y=y)
-
-
-    def redraw(self):
-        self.__root.update_idletasks()
-        self.__root.update()
     
 
-    def wait_for_close(self):
-        self.__running = True
-        while self.__running:
-            self.redraw()
+    def mainloop(self):
+        self.__root.mainloop()
         print("window closed...")
-    
-
-    def close(self):
-        self.__running = False
 
 
 class FDMImage():
@@ -76,4 +66,7 @@ class FDMButton():
     
 
     def create_new(self):
-        print("We are making frame data!")
+        filename = askopenfilename(title="Open Image File", filetypes=[("Image files", "*.png")])
+        global spr
+        spr = FDMImage(filename, 100, 100, self.win)
+        spr.draw()
