@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, BOTH
+from tkinter import Tk, Canvas, BOTH, PhotoImage, Label, NW
 
 class Window():
     def __init__(self, width, height):
@@ -8,6 +8,10 @@ class Window():
         self.__canvas.pack(fill=BOTH, expand=1)
         self.__running = False
         self.__root.protocol("WM_DELETE_WINDOW", self.close)
+
+
+    def draw_image(self, image, x, y):
+        self.__canvas.create_image(x,y,anchor=NW,image=image)
 
 
     def redraw(self):
@@ -24,3 +28,17 @@ class Window():
 
     def close(self):
         self.__running = False
+
+
+class Sprite():
+    def __init__(self, spr_path, x, y, win):
+        self.img = PhotoImage(file=spr_path)
+        self.x = x
+        self.y = y
+        self.win = win
+    
+
+    def draw(self):
+        self.win.draw_image(self.img, self.x, self.y)
+        
+
