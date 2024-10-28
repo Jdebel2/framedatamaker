@@ -6,6 +6,7 @@ from enum import Enum
 class ButtonFunction(Enum):
     NEW=1
     LOAD=2
+    CLICK_TIMELINE=3
 
 
 class Window():
@@ -25,13 +26,15 @@ class Window():
 
 
     def draw_sprite(self, sprite):
-        sprite.render = ImageTk.PhotoImage(sprite.img)
+        x2 = sprite.x + sprite.img.width
+        y2 = sprite.y + sprite.img.height
+        self.__canvas.create_rectangle(sprite.x, sprite.y, x2, y2, fill='black', outline='black')
         self.__canvas.create_image(sprite.x,sprite.y,anchor=NW,image=sprite.render)
         self.__canvas.pack()
 
 
     def draw_button(self, btn, x, y):
-        btn.place(x=x, y=y)
+        self.__canvas.create_window(x,y,window=btn, anchor=NW)
     
 
     def mainloop(self):
@@ -42,11 +45,22 @@ class Window():
 class FDMSprite():
     def __init__(self, img, x, y, win):
         self.img = img
-        self.render = None
+        self.render = ImageTk.PhotoImage(img)
         self.x = x
         self.y = y
+        self.button = None
         self.win = win
     
+
+    def update_render(self):
+        self.render = ImageTk.PhotoImage(self.img)
+        if (self.button):
+            self.add_button()
+
+
+    def add_button(self, timelinesprite):
+        self.button = FDMButton("",self.x, self.y, self.img.width, self.img.height, ButtonFunction.CLICK_TIMELINE, self.win, image=self.render, timelinesprite=timelinesprite)
+
 
     def copy(self):
         return FDMSprite(self.img, self.x, self.y, self.win)
@@ -58,21 +72,44 @@ class FDMSprite():
 
 
     def draw(self):
+        if (self.button):
+            self.button.draw()
         self.win.draw_sprite(self)
         
 
 class FDMButton():
-    def __init__(self,text, x, y, width, height, mode, editor, win):
-        command=None
+    def __init__(self,text, x, y, width, height, mode, win, editor=None, image=None, timelinesprite=None):
+        cmnd=None
         match (mode): 
             case ButtonFunction.NEW:
-                command=self.create_new
+                cmnd=self.create_new
+            case ButtonFunction.CLICK_TIMELINE:
+                cmnd=self.click_timeline
             case _:
-                raise NotImplementedError("Only NEW is implemented")
-        self.btn = Button(win.get_root(), text=text, width=width, height=height, bd='1', command=command)
+                raise NotImplementedError("Not yet implemented")
+            
+        background = 'gray'
+        foreground = 'white'
+        if image != None:
+            background = 'black'
+            foreground = 'black'
+
+        self.btn = Label(
+            win.get_root(), 
+            text=text, 
+            width=width, 
+            height=height,
+            image=image,
+            relief='raised',
+            background=background,
+            foreground=foreground,
+            bd=1,
+        )
+        self.btn.bind("<Button-1>", lambda e: cmnd())
         self.x = x
         self.y = y
         self.editor = editor
+        self.timelinesprite = timelinesprite
         self.win=win
     
 
@@ -82,7 +119,15 @@ class FDMButton():
 
     def create_new(self):
         filename = askopenfilename(title="Open Image File", filetypes=[("Image files", "*.png")])
+        if not filename:
+            return
         img = Image.open(filename)
         self.editor.load_data(img, filename)
         self.editor.animation.draw()
         self.editor.timeline.draw()
+    
+    
+    def click_timeline(self):
+        editor = self.timelinesprite.editor
+        editor.animation.current_sprite = editor.animation.sprites[self.timelinesprite.index]
+        editor.animation.draw()

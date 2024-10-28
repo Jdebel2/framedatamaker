@@ -4,7 +4,7 @@ from timeline import Timeline
 class Editor():
     def __init__(self, win):
         self.animation = Animation(win)
-        self.timeline = Timeline(win)
+        self.timeline = Timeline(self, win)
         self.win = win
     
 

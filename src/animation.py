@@ -18,15 +18,16 @@ class Animation():
         self.width, self.height = spritesheet.size
         self.width //= self.subdivisions
         self.create_sprites()
+        self.current_sprite = self.sprites[0]
     
 
     def create_sprites(self):
         for idx in range(self.subdivisions):
             n_image = self.spritesheet.crop((self.width*idx,0,self.width*(idx+1),self.height)).resize((self.width, self.height), Image.NEAREST)
             sprite = FDMSprite(n_image, 20, 75, self.win)
+            sprite.update_render()
             self.sprites.append(sprite)
     
 
     def draw(self):
-        self.current_sprite = self.sprites[0]
         self.current_sprite.draw()
