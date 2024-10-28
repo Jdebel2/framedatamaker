@@ -1,10 +1,10 @@
 from graphics import Window, FDMButton, ButtonFunction
-from animation import Animation
+from editor import Editor
 
 def main():
     win = Window(800, 600)
-    anim = Animation(win)
-    btn = FDMButton('New', 20, 20, 6, 1, ButtonFunction.NEW, win, anim=anim)
+    editor = Editor(win)
+    btn = FDMButton('New', 20, 20, 6, 1, ButtonFunction.NEW, editor, win)
     btn.draw()
     win.mainloop()
 

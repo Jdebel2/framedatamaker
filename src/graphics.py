@@ -25,8 +25,8 @@ class Window():
 
 
     def draw_sprite(self, sprite):
-        sprite.img = ImageTk.PhotoImage(sprite.img)
-        self.__canvas.create_image(sprite.x,sprite.y,anchor=NW,image=sprite.img)
+        sprite.render = ImageTk.PhotoImage(sprite.img)
+        self.__canvas.create_image(sprite.x,sprite.y,anchor=NW,image=sprite.render)
         self.__canvas.pack()
 
 
@@ -42,17 +42,27 @@ class Window():
 class FDMSprite():
     def __init__(self, img, x, y, win):
         self.img = img
+        self.render = None
         self.x = x
         self.y = y
         self.win = win
     
+
+    def copy(self):
+        return FDMSprite(self.img, self.x, self.y, self.win)
+
+
+    def set_position(self, x, y):
+        self.x = x
+        self.y = y
+
 
     def draw(self):
         self.win.draw_sprite(self)
         
 
 class FDMButton():
-    def __init__(self,text, x, y, width, height, mode, win, anim=None):
+    def __init__(self,text, x, y, width, height, mode, editor, win):
         command=None
         match (mode): 
             case ButtonFunction.NEW:
@@ -62,8 +72,8 @@ class FDMButton():
         self.btn = Button(win.get_root(), text=text, width=width, height=height, bd='1', command=command)
         self.x = x
         self.y = y
+        self.editor = editor
         self.win=win
-        self.anim = anim
     
 
     def draw(self):
@@ -73,5 +83,6 @@ class FDMButton():
     def create_new(self):
         filename = askopenfilename(title="Open Image File", filetypes=[("Image files", "*.png")])
         img = Image.open(filename)
-        self.anim.load_info(img, filename)
-        self.anim.create_sprites()
+        self.editor.load_data(img, filename)
+        self.editor.animation.draw()
+        self.editor.timeline.draw()
