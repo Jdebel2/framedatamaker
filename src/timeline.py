@@ -1,4 +1,5 @@
 from graphics import FDMSprite
+from tkinter import Label
 from PIL import Image
 
 class Timeline():
@@ -6,6 +7,7 @@ class Timeline():
         self.sprites = []
         self.start_index = 0
         self.end_index = 0
+        self.current_index = 0
         self.subdivisions = None
         self.width = None
         self.height = None
@@ -13,6 +15,8 @@ class Timeline():
         self.timeline_height = win.height - 50
         self.editor = editor
         self.win = win
+        self.win.draw_rect(0,self.timeline_height - 25, win.width,win.height, '#222222')
+        self.frame_indicator = Label(self.win.get_root(), text=f'Frame: 0', foreground='white', background='#222222')
     
 
     def load_data(self, anim):
@@ -50,6 +54,12 @@ class Timeline():
     def draw(self):
         for idx in range(self.start_index, self.end_index):
             self.sprites[idx].sprite.draw()
+        self.draw_frame_indicator()
+    
+
+    def draw_frame_indicator(self):
+        self.frame_indicator.configure(text=f'Frame: {self.current_index}')
+        self.win.draw_text(10,self.timeline_height-25,self.frame_indicator)   
 
 
 class TimelineSprite():

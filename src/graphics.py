@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, BOTH, PhotoImage, NW, Button, Label
+from tkinter import Tk, Canvas, BOTH, NW, Label
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 from enum import Enum
@@ -36,6 +36,14 @@ class Window():
     def draw_button(self, btn, x, y):
         self.__canvas.create_window(x,y,window=btn, anchor=NW)
     
+
+    def draw_rect(self, x1, y1, x2, y2, color):
+        self.__canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
+    
+
+    def draw_text(self,x,y,text_obj):
+        self.__canvas.create_window(x,y,window=text_obj, anchor=NW)
+
 
     def mainloop(self):
         self.__root.mainloop()
@@ -130,4 +138,6 @@ class FDMButton():
     def click_timeline(self):
         editor = self.timelinesprite.editor
         editor.animation.current_sprite = editor.animation.sprites[self.timelinesprite.index]
+        editor.timeline.current_index = self.timelinesprite.index
         editor.animation.draw()
+        editor.timeline.draw_frame_indicator()
