@@ -1,6 +1,6 @@
-from graphics import FDMSprite
+from graphics import FDMButton, ButtonFunction
 from tkinter import Label
-from PIL import Image
+from PIL import Image, ImageTk
 
 class Timeline():
     def __init__(self, editor, win):
@@ -17,9 +17,20 @@ class Timeline():
         self.win = win
         self.win.draw_rect(0,self.timeline_height - 25, win.width,win.height, '#222222')
         self.frame_indicator = Label(self.win.get_root(), text=f'Frame: 0', foreground='white', background='#222222')
-    
+        self.left_chevron = Image.open('assets/Left_chevron.png')
+        self.left_chevron_render = ImageTk.PhotoImage(self.left_chevron)
+        self.right_chevron = Image.open('assets/Right_chevron.png')
+        self.right_chevron_render = ImageTk.PhotoImage(self.right_chevron)
+        self.left_button = None
+        self.right_button = None
+        self.frame_labels = []
+
 
     def load_data(self, anim):
+        self.left_button = FDMButton("",10, self.timeline_height,32,32,ButtonFunction.CLICK_LEFT_BUTTON_TIMELINE, self.win, self.editor, image=self.left_chevron_render)
+        self.right_button = FDMButton("",self.win.width-42, self.timeline_height,32,32,ButtonFunction.CLICK_RIGHT_BUTTON_TIMELINE, self.win, self.editor, image=self.right_chevron_render)
+        self.left_button.draw()
+        self.right_button.draw()
         self.subdivisions = anim.subdivisions
         self.max_timeline_sprites = min(5, self.subdivisions)
         self.end_index = self.max_timeline_sprites-1
@@ -29,6 +40,7 @@ class Timeline():
             spr = anim.sprites[idx]
             self.sprites.append(TimelineSprite(self.editor, spr.copy(), idx))
         self.create_timeline_sprites()
+        self.draw_frame_indicator()
     
 
     def create_timeline_sprites(self):
@@ -51,6 +63,24 @@ class Timeline():
             curr_dist += dist_between
 
 
+    def render_frame_labels(self):
+        start_pos = self.win.width - self.width
+        dist_between = 1/(self.max_timeline_sprites+1)
+        curr_dist = dist_between
+
+        if (len(self.frame_labels) == 0):
+            for idx in range(self.max_timeline_sprites):
+                self.frame_labels.append(Label(self.win.get_root(), text=f'{idx}', foreground='white', background='#222222'))
+        else:
+            frame_index = 0
+            for idx in range(self.start_index, self.end_index+1):
+                self.frame_labels[frame_index].configure(text=f'{idx}')
+                frame_index+=1
+        for label in self.frame_labels:
+            self.win.draw_text(int(start_pos * curr_dist), self.timeline_height-20, label)
+            curr_dist += dist_between
+
+
     def update_index_range(self):
         if self.subdivisions < 5:
             return False
@@ -59,7 +89,7 @@ class Timeline():
             return False
         
         if self.current_index < 0 or self.current_index >= len(self.sprites):
-            raise ValueError('Index out of bounds')
+            return False
 
         if self.current_index < self.start_index:
             self.start_index = self.current_index
@@ -76,12 +106,12 @@ class Timeline():
     def draw(self):
         for idx in range(self.start_index, self.end_index+1):
             self.sprites[idx].sprite.draw()
-        self.draw_frame_indicator()
+        self.render_frame_labels()
     
 
     def draw_frame_indicator(self):
         self.frame_indicator.configure(text=f'Frame: {self.current_index}')
-        self.win.draw_text(10,self.timeline_height-25,self.frame_indicator)   
+        self.win.draw_text(10,self.timeline_height-25,self.frame_indicator)
 
 
 class TimelineSprite():

@@ -7,6 +7,8 @@ class ButtonFunction(Enum):
     NEW=1
     LOAD=2
     CLICK_TIMELINE=3
+    CLICK_LEFT_BUTTON_TIMELINE=4
+    CLICK_RIGHT_BUTTON_TIMELINE=5
 
 
 class Window():
@@ -93,6 +95,10 @@ class FDMButton():
                 cmnd=self.create_new
             case ButtonFunction.CLICK_TIMELINE:
                 cmnd=self.click_timeline
+            case ButtonFunction.CLICK_LEFT_BUTTON_TIMELINE:
+                cmnd=self.click_timeline_left_button
+            case ButtonFunction.CLICK_RIGHT_BUTTON_TIMELINE:
+                cmnd=self.click_timeline_right_button
             case _:
                 raise NotImplementedError("Not yet implemented")
             
@@ -140,3 +146,11 @@ class FDMButton():
     def click_timeline(self):
         editor = self.timelinesprite.editor
         editor.jump_to(self.timelinesprite.index)
+
+
+    def click_timeline_left_button(self):
+        self.editor.jump_to_unintrusive(max(self.editor.timeline.start_index-1,0))
+
+
+    def click_timeline_right_button(self):
+        self.editor.jump_to_unintrusive(min(self.editor.timeline.end_index+1, len(self.editor.timeline.sprites)-1))

@@ -6,7 +6,6 @@ class Editor():
         self.animation = Animation(win)
         self.timeline = Timeline(self, win)
         self.win = win
-        self.win.get_root().bind("<Return>", lambda e: self.jump_to(6))
     
 
     def load_data(self, spritesheet, path):
@@ -15,10 +14,13 @@ class Editor():
     
 
     def jump_to(self, frame):
-        self.timeline.current_index = frame
+        self.jump_to_unintrusive(frame)
         self.animation.current_sprite = self.animation.sprites[frame]
         self.animation.draw()
+        self.timeline.draw_frame_indicator()
+    
+
+    def jump_to_unintrusive(self, frame):
+        self.timeline.current_index = frame
         if self.timeline.update_index_range():
             self.timeline.draw()
-        else:
-            self.timeline.draw_frame_indicator()
