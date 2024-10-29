@@ -63,7 +63,7 @@ class FDMSprite():
     def update_render(self):
         self.render = ImageTk.PhotoImage(self.img)
         if (self.button):
-            self.add_button()
+            self.add_button(self.render)
 
 
     def add_button(self, timelinesprite):
@@ -98,9 +98,11 @@ class FDMButton():
             
         background = 'gray'
         foreground = 'white'
+        border=1
         if image != None:
             background = 'black'
             foreground = 'black'
+            border=3
 
         self.btn = Label(
             win.get_root(), 
@@ -111,7 +113,7 @@ class FDMButton():
             relief='raised',
             background=background,
             foreground=foreground,
-            bd=1,
+            bd=border,
         )
         self.btn.bind("<Button-1>", lambda e: cmnd())
         self.x = x
@@ -137,7 +139,4 @@ class FDMButton():
     
     def click_timeline(self):
         editor = self.timelinesprite.editor
-        editor.animation.current_sprite = editor.animation.sprites[self.timelinesprite.index]
-        editor.timeline.current_index = self.timelinesprite.index
-        editor.animation.draw()
-        editor.timeline.draw_frame_indicator()
+        editor.jump_to(self.timelinesprite.index)
