@@ -41,6 +41,7 @@ class Timeline():
             self.sprites.append(TimelineSprite(self.editor, spr.copy(), idx))
         self.create_timeline_sprites()
         self.draw_frame_indicator()
+        self.left_button.btn.configure(state='disabled')
     
 
     def create_timeline_sprites(self):
@@ -100,6 +101,16 @@ class Timeline():
         else:
             raise ValueError("how the hell did you manange to throw this?")
         self.create_timeline_sprites()
+        if self.start_index == 0:
+            self.left_button.btn.configure(state='disabled')
+        elif self.left_button.btn['state']=='disabled':
+            self.left_button.btn.configure(state='normal')
+        
+        if self.end_index == len(self.sprites)-1:
+            self.right_button.btn.configure(state='disabled')
+        elif self.right_button.btn['state']=='disabled':
+            self.right_button.btn.configure(state='normal')
+
         return True
 
 
