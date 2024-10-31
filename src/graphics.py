@@ -33,6 +33,11 @@ class Window():
         self.__canvas.create_rectangle(sprite.x, sprite.y, x2, y2, fill='black', outline='black')
         self.__canvas.create_image(sprite.x,sprite.y,anchor=NW,image=sprite.render)
         self.__canvas.pack()
+    
+
+    def draw_box(self, box):
+        self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
+        self.__canvas.pack()
 
 
     def draw_button(self, btn, x, y):
@@ -41,7 +46,7 @@ class Window():
 
     def draw_rect(self, x1, y1, x2, y2, color):
         self.__canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
-    
+
 
     def draw_text(self,x,y,text_obj):
         self.__canvas.create_window(x,y,window=text_obj, anchor=NW)
