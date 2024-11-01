@@ -9,6 +9,7 @@ class ButtonFunction(Enum):
     CLICK_TIMELINE=3
     CLICK_LEFT_BUTTON_TIMELINE=4
     CLICK_RIGHT_BUTTON_TIMELINE=5
+    SWITCH_BOX_TYPE=6
 
 
 class Window():
@@ -25,6 +26,10 @@ class Window():
 
     def get_root(self):
         return self.__root
+
+
+    def get_canvas(self):
+        return self.__canvas
 
 
     def draw_sprite(self, sprite):
@@ -104,6 +109,8 @@ class FDMButton():
                 cmnd=self.click_timeline_left_button
             case ButtonFunction.CLICK_RIGHT_BUTTON_TIMELINE:
                 cmnd=self.click_timeline_right_button
+            case ButtonFunction.SWITCH_BOX_TYPE:
+                cmnd=self.switch_box_type
             case _:
                 raise NotImplementedError("Not yet implemented")
             
@@ -159,3 +166,10 @@ class FDMButton():
 
     def click_timeline_right_button(self):
         self.editor.jump_to_unintrusive(min(self.editor.timeline.end_index+1, len(self.editor.timeline.sprites)-1))
+
+
+    def switch_box_type(self):
+        if self.editor.create_mode == 'hitbox':
+            self.editor.switch_create_mode('hurtbox')
+        elif self.editor.create_mode == 'hurtbox':
+            self.editor.switch_create_mode('hitbox')
