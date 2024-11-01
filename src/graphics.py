@@ -40,9 +40,14 @@ class Window():
         self.__canvas.pack()
     
 
-    def draw_box(self, box):
-        self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
-        self.__canvas.pack()
+    def draw_box(self, box, draw_border=False):
+        if draw_border:
+            border_id = self.__canvas.create_image(box.x-3,box.y-3,anchor=NW,image=box.border_render)
+            id = self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
+            self.__canvas.pack()
+            return id, border_id
+        id = self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
+        return id
 
 
     def draw_button(self, btn, x, y):
@@ -64,6 +69,7 @@ class Window():
 
 class FDMSprite():
     def __init__(self, img, x, y, win):
+        self.id = -1
         self.img = img
         self.render = ImageTk.PhotoImage(img)
         self.x = x

@@ -8,42 +8,91 @@ class Editor():
         self.animation = Animation(win)
         self.timeline = Timeline(self, win)
         self.win = win
-        self.hitboxes = []
-        self.hurtboxes = []
+        self.boxes = []
         self.create_mode = 'hitbox'
         self.switch_btn = None
+        self.moving_box = False
+        self.moving_box_origin_diff = [0,0]
+        self.current_selected_box = None
     
 
     def load_data(self, spritesheet, path):
         self.animation.load_data(spritesheet, path)
         self.timeline.load_data(self.animation)
-        self.win.get_canvas().bind("<Button-1>", self.get_box)
-        self.win.get_canvas().bind("<Button-2>", self.callback)
-        self.win.get_canvas().bind("<Button-3>", self.callback)
+        self.win.get_canvas().bind("<Button-1>", self.left_click_event)
+        self.win.get_canvas().bind("<ButtonRelease-1>", self.left_click_release_event)
+        self.win.get_canvas().bind("<Button-2>", self.right_click_event)
+        self.win.get_canvas().bind("<Button-3>", self.right_click_event)
         self.switch_btn = FDMButton("Create Hitbox", 20, 40, 12, 1, ButtonFunction.SWITCH_BOX_TYPE, self.win, self)
         self.switch_btn.draw()
     
 
-    def callback(self, event):
+    def right_click_event(self, event):
         if event.y < self.timeline.timeline_height-50:
+            n_box = None
             match self.create_mode:
                 case 'hitbox':
-                    n_hitbox = Hitbox(event.x,event.y, 50, 50, self.win)
-                    self.hitboxes.append(n_hitbox)
-                    n_hitbox.draw()
+                    n_box = Hitbox(event.x,event.y, 50, 50, self.win)
                 case 'hurtbox':
-                    n_hurtbox = Hurtbox(event.x,event.y, 50, 50, self.win)
-                    self.hitboxes.append(n_hurtbox)
-                    n_hurtbox.draw()
+                    n_box = Hurtbox(event.x,event.y, 50, 50, self.win)
+            if n_box != None:
+                self.boxes.append(n_box)
+                n_box.draw()
+                return
+            raise Exception("Error - box object not added")
     
 
-    def get_box(self, event):
+    def left_click_event(self, event):
         if event.y >= self.timeline.timeline_height-50:
             return
         items = self.win.get_canvas().find_overlapping(event.x-1,event.y-1, event.x+1, event.y+1)
+        box_target = None
+        self.moving_box = False
         if len(items) != 0:
-            print(items[-1])
+            target = items[-1]
+            box_target = self.get_box_by_canvas_id(target)
+            if box_target != None:
+                if (not box_target.can_move):
+                    for hb in self.boxes:
+                        if hb.box_id != box_target.box_id:
+                            hb.set_can_move(False)
+                    box_target.set_can_move(True)
+                    self.current_selected_box = box_target
+                else:
+                    print("Time to change position!")
+                    self.moving_box = True
+                    self.moving_box_origin_diff[0] = event.x - box_target.x
+                    self.moving_box_origin_diff[1] = event.y - box_target.y
+                    print(self.moving_box_origin_diff)
+        else:
+            if self.current_selected_box != None:
+                self.current_selected_box.set_can_move(False)
+                self.current_selected_box = None
     
+
+    def left_click_release_event(self, event):
+        if event.y >= self.timeline.timeline_height-50:
+            return
+        if self.current_selected_box == None:
+            return
+        if not self.moving_box:
+            return
+
+        new_x = event.x - self.moving_box_origin_diff[0]
+        new_y = event.y - self.moving_box_origin_diff[1]
+        print(f"new position: {new_x}, {new_y}")
+        self.current_selected_box.set_position(new_x, new_y)
+        self.current_selected_box.draw()
+
+    
+    def get_box_by_canvas_id(self, canvas_id):
+        box_target = None
+        for hb in self.boxes:
+            if hb.box_id == canvas_id:
+                box_target = hb 
+                break
+        return box_target
+
 
     def switch_create_mode(self, new_mode):
         if new_mode != 'hitbox' and new_mode != 'hurtbox':
@@ -61,6 +110,8 @@ class Editor():
         self.animation.current_sprite = self.animation.sprites[frame]
         self.animation.draw()
         self.timeline.draw_frame_indicator()
+        for box in self.boxes:
+            box.draw()
     
 
     def jump_to_unintrusive(self, frame):

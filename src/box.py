@@ -1,3 +1,4 @@
+from tkinter import Label
 from PIL import Image, ImageTk
 
 class Box():
@@ -9,6 +10,10 @@ class Box():
         self.win = win
         self.img = Image.new("RGBA", (self.width, self.height), color=color)
         self.render = ImageTk.PhotoImage(self.img)
+        self.border = Image.new("RGB", (self.width+6, self.height+6), color=(200, 200, 0))
+        self.border_render = ImageTk.PhotoImage(self.border)
+        self.box_id = -1
+        self.border_id = -1
         self.can_move = False
         
 
@@ -22,13 +27,23 @@ class Box():
         self.height = height
 
 
-    def update_can_move(self):
-        self.can_move = not self.can_move
+    def set_can_move(self, value):
+        self.can_move = value
         print(f"{self.x}, {self.y} movable = {self.can_move}")
+        self.draw()
 
 
     def draw(self):
-        self.win.draw_box(self)
+        if self.box_id != -1:
+            self.win.get_canvas().delete(self.box_id)
+        if self.border_id != -1:
+            self.win.get_canvas().delete(self.border_id)
+        if self.can_move:
+            print("Drawing active hitbox")
+            self.box_id, self.border_id = self.win.draw_box(self, draw_border=True)
+        else:
+            print("Drawing inactive hitbox")
+            self.box_id = self.win.draw_box(self)
 
 
 class Hitbox(Box):
