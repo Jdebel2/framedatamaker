@@ -3,6 +3,7 @@ from timeline import Timeline
 from graphics import FDMButton, ButtonFunction
 from box import Hitbox, Hurtbox
 from flag import Flag
+from tkinter import Label
 from origin_point import OriginPoint
 
 class Editor():
@@ -27,6 +28,8 @@ class Editor():
         self.current_selected_box_corner = None
         self.ghost_index = -1
         self.ghost_box = None
+        self.left_click_label = Label(self.win.get_root(), text=f'Left Click - Hitbox Adjust Properties: All', foreground='white', background='#000000')
+        self.right_click_label = Label(self.win.get_root(), text=f'Right Click - Hitbox Modify Mode: Create', foreground='white', background='#000000')
     
 
     def load_data(self, spritesheet, path):
@@ -41,32 +44,41 @@ class Editor():
         self.switch_btn = FDMButton("Create Hitbox", 20, 40, 12, 1, ButtonFunction.SWITCH_BOX_TYPE, self.win, self)
         self.switch_btn.draw()
         self.origin_point.draw()
-    
+        self.left_click_label_id = self.win.draw_text(300, 20, self.left_click_label)
+        self.right_click_label_id = self.win.draw_text(300, 40, self.right_click_label)
+
 
     def key_press_event(self, event):
         if event.char == 'q':
             self.adjust_mode = 'all'
+            self.left_click_label.configure(text='Left Click - Hitbox Adjust Properties: All')
             print('Adjust mode set: all')
         elif event.char == 'w':
             self.adjust_mode = 'position'
+            self.left_click_label.configure(text='Left Click - Hitbox Adjust Properties: Position')
             print('Adjust mode set: position')
         elif event.char == 'e':
             self.adjust_mode = 'scale'
+            self.left_click_label.configure(text='Left Click - Hitbox Adjust Properties: Scale')
             print('Adjust mode set: scale')
         elif event.char == 'r':
             self.adjust_mode = 'origin_point'
             self.moving_origin_point = not self.moving_origin_point
             self.moving_origin_point_diff[0] = 3
             self.moving_origin_point_diff[1] = 3
+            self.left_click_label.configure(text='Left Click - Modify Origin Point Position')
             print('Adjust mode set: origin_point')
         elif event.char == 'a':
             self.hitbox_modify_mode = 'create'
+            self.right_click_label.configure(text='Right Click - Hitbox Modify Mode: Create')
             print('Adjust hitbox modify mode set: create')
         elif event.char == 's':
             self.hitbox_modify_mode = 'disable'
+            self.right_click_label.configure(text='Right Click - Hitbox Modify Mode: Disable')
             print('Adjust hitbox modify mode set: disable')
         elif event.char == 'd':
             self.hitbox_modify_mode = 'delete'
+            self.right_click_label.configure(text='Right Click - Hitbox Modify Mode: Delete')
             print('Adjust hitbox modify mode set: delete')
         elif event.char == 'p':
             for flag in self.flags:
