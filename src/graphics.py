@@ -17,8 +17,9 @@ class Window():
         self.__root = Tk()
         self.__root.title("Frame Data Maker")
         self.__root.resizable(width=False, height=False)
-        self.__canvas = Canvas(self.__root, {"bg": "black"}, height=height, width=width)
+        self.__canvas = Canvas(self.__root, {"bg": "black"}, height=height, width=width, highlightcolor='black')
         self.__canvas.pack(fill=BOTH, expand=1)
+        self.__canvas.focus_set()
         self.width = width
         self.height = height
         self.__root.protocol("WM_DELETE_WINDOW", self.__root.destroy)
@@ -42,11 +43,18 @@ class Window():
 
     def draw_box(self, box, draw_border=False):
         if draw_border:
+            box.border = Image.new("RGBA", (box.width+6, box.height+6), color=(200, 200, 0, 100))
+            box.border_render = ImageTk.PhotoImage(box.border)
             border_id = self.__canvas.create_image(box.x-3,box.y-3,anchor=NW,image=box.border_render)
             id = self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
             self.__canvas.pack()
             return id, border_id
         id = self.__canvas.create_image(box.x,box.y,anchor=NW,image=box.render)
+        return id
+
+
+    def draw_box_corner(self, x, y, render):
+        id = self.__canvas.create_image(x, y,anchor=NW, image=render)
         return id
 
 
