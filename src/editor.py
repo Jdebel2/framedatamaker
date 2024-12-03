@@ -3,6 +3,7 @@ from timeline import Timeline
 from graphics import FDMButton, ButtonFunction
 from box import Hitbox, Hurtbox
 from flag import Flag
+from origin_point import OriginPoint
 
 class Editor():
     def __init__(self, win):
@@ -11,12 +12,15 @@ class Editor():
         self.win = win
         self.boxes = []
         self.flags = []
+        self.origin_point = OriginPoint(20, 120, win)
         self.create_mode = 'hitbox'
         self.hitbox_modify_mode = 'create'
         self.adjust_mode = 'all'
         self.switch_btn = None
         self.moving_box = False
         self.moving_box_corner = False
+        self.moving_origin_point = False
+        self.moving_origin_point_diff = [0,0]
         self.moving_box_corner_origin_diff = [0,0]
         self.moving_box_origin_diff = [0,0]
         self.current_selected_box = None
@@ -36,6 +40,7 @@ class Editor():
         self.win.get_canvas().bind("<Key>", self.key_press_event)
         self.switch_btn = FDMButton("Create Hitbox", 20, 40, 12, 1, ButtonFunction.SWITCH_BOX_TYPE, self.win, self)
         self.switch_btn.draw()
+        self.origin_point.draw()
     
 
     def key_press_event(self, event):
@@ -48,13 +53,19 @@ class Editor():
         elif event.char == 'e':
             self.adjust_mode = 'scale'
             print('Adjust mode set: scale')
-        elif event.char == 'z':
+        elif event.char == 'r':
+            self.adjust_mode = 'origin_point'
+            self.moving_origin_point = not self.moving_origin_point
+            self.moving_origin_point_diff[0] = 3
+            self.moving_origin_point_diff[1] = 3
+            print('Adjust mode set: origin_point')
+        elif event.char == 'a':
             self.hitbox_modify_mode = 'create'
             print('Adjust hitbox modify mode set: create')
-        elif event.char == 'x':
+        elif event.char == 's':
             self.hitbox_modify_mode = 'disable'
             print('Adjust hitbox modify mode set: disable')
-        elif event.char == 'c':
+        elif event.char == 'd':
             self.hitbox_modify_mode = 'delete'
             print('Adjust hitbox modify mode set: delete')
         elif event.char == 'p':
@@ -109,6 +120,7 @@ class Editor():
     def left_click_event(self, event):
         if event.y >= self.timeline.timeline_height-50:
             return
+        self.origin_point.draw()
         items = self.win.get_canvas().find_overlapping(event.x-1,event.y-1, event.x+1, event.y+1)
         box_corner_target = None
         box_target = None
@@ -151,6 +163,19 @@ class Editor():
     def left_click_release_event(self, event):
         if event.y >= self.timeline.timeline_height-50:
             return
+        if self.adjust_mode == 'origin_point' and self.moving_origin_point:
+            new_x = event.x - self.moving_origin_point_diff[0]
+            new_y = event.y - self.moving_origin_point_diff[1]
+            print(f"new origin point position: {new_x}, {new_y}")
+            self.origin_point.set_position(new_x, new_y)
+            self.origin_point.draw()
+            for flag in self.flags:
+                for frame in range(len(flag.frame_changes)):
+                    frame_ref = flag.frame_changes[frame]
+                    if 'position' in frame_ref:
+                        flag.recalculate_position_from_origin_point(frame, [self.origin_point.x, self.origin_point.y])
+            return
+
         if self.current_selected_box == None and self.current_selected_box_corner == None:
             return
         if not self.moving_box and not self.moving_box_corner:
@@ -184,7 +209,7 @@ class Editor():
             print(f"new scale: {new_width}, {new_height}")
             for flag in self.flags:
                 if flag.box == self.current_selected_box:
-                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y])
+                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y], [self.origin_point.x, self.origin_point.y])
                     flag.update_scale_change_at_frame(self.timeline.current_index, [new_width, new_height])
                     flag.update_is_enabled_change_at_frame(self.timeline.current_index, self.current_selected_box.is_enabled)
                     return
@@ -201,7 +226,7 @@ class Editor():
             self.current_selected_box.draw()
             for flag in self.flags:
                 if flag.box == self.current_selected_box:
-                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y])
+                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y], [self.origin_point.x, self.origin_point.y])
                     flag.update_is_enabled_change_at_frame(self.timeline.current_index, self.current_selected_box.is_enabled)
                     return
 
