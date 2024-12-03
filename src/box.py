@@ -9,6 +9,9 @@ class Box():
         self.height = height
         self.win = win
         self.color = color
+        self.is_enabled = True
+        self.enabled_color = color
+        self.disabled_color = (100,100,100,100)
         self.img = Image.new("RGBA", (self.width, self.height), color=color)
         self.render = ImageTk.PhotoImage(self.img)
         self.border = Image.new("RGBA", (self.width+6, self.height+6), color=(200, 200, 0, 100))
@@ -65,6 +68,42 @@ class Box():
             self.border_corner_bl.remove()
             self.border_corner_br.remove()
             self.box_id = self.win.draw_box(self)
+    
+
+    def enable_self(self):
+        self.is_enabled = True
+        self.color = self.enabled_color
+        self.img = Image.new("RGBA", (self.width, self.height), color=self.color)
+        self.render = ImageTk.PhotoImage(self.img)
+        self.border_corner_tl.set_color(self.color)
+        self.border_corner_tr.set_color(self.color)
+        self.border_corner_bl.set_color(self.color)
+        self.border_corner_br.set_color(self.color)
+        self.draw()
+
+
+    def disable_self(self):
+        self.is_enabled = False
+        self.color = self.disabled_color
+        self.img = Image.new("RGBA", (self.width, self.height), color=self.color)
+        self.render = ImageTk.PhotoImage(self.img)
+        self.border_corner_tl.set_color(self.color)
+        self.border_corner_tr.set_color(self.color)
+        self.border_corner_bl.set_color(self.color)
+        self.border_corner_br.set_color(self.color)
+        self.draw()
+
+
+    def delete_self(self):
+        if self.box_id != -1:
+            self.win.get_canvas().delete(self.box_id)
+        if self.border_id != -1:
+            self.win.get_canvas().delete(self.border_id)
+        self.border_corner_tl.remove()
+        self.border_corner_tr.remove()
+        self.border_corner_bl.remove()
+        self.border_corner_br.remove()
+        del self
 
 
 class BoxCorner():
@@ -84,6 +123,12 @@ class BoxCorner():
     def set_position(self, x, y):
         self.x = x
         self.y = y
+
+
+    def set_color(self, color):
+        self.color = color
+        self.image = Image.new("RGBA", (self.width, self.height), color=self.color)
+        self.render = ImageTk.PhotoImage(self.image)
 
 
     def draw(self):

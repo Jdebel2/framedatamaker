@@ -10,6 +10,7 @@ class Editor():
         self.win = win
         self.boxes = []
         self.create_mode = 'hitbox'
+        self.hitbox_modify_mode = 'create'
         self.adjust_mode = 'all'
         self.switch_btn = None
         self.moving_box = False
@@ -30,12 +31,12 @@ class Editor():
         self.win.get_canvas().bind("<B1-Motion>", self.left_click_hold_event)
         self.win.get_canvas().bind("<Button-2>", self.right_click_event)
         self.win.get_canvas().bind("<Button-3>", self.right_click_event)
-        self.win.get_canvas().bind("<Key>", self.s_key_release_event)
+        self.win.get_canvas().bind("<Key>", self.key_press_event)
         self.switch_btn = FDMButton("Create Hitbox", 20, 40, 12, 1, ButtonFunction.SWITCH_BOX_TYPE, self.win, self)
         self.switch_btn.draw()
     
 
-    def s_key_release_event(self, event):
+    def key_press_event(self, event):
         if event.char == 'q':
             self.adjust_mode = 'all'
             print('Adjust mode set: all')
@@ -45,21 +46,49 @@ class Editor():
         elif event.char == 'e':
             self.adjust_mode = 'scale'
             print('Adjust mode set: scale')
+        elif event.char == 'z':
+            self.hitbox_modify_mode = 'create'
+            print('Adjust hitbox modify mode set: create')
+        elif event.char == 'x':
+            self.hitbox_modify_mode = 'disable'
+            print('Adjust hitbox modify mode set: disable')
+        elif event.char == 'c':
+            self.hitbox_modify_mode = 'delete'
+            print('Adjust hitbox modify mode set: delete')
 
 
     def right_click_event(self, event):
         if event.y < self.timeline.timeline_height-50:
-            n_box = None
-            match self.create_mode:
-                case 'hitbox':
-                    n_box = Hitbox(event.x,event.y, 50, 50, self.win)
-                case 'hurtbox':
-                    n_box = Hurtbox(event.x,event.y, 50, 50, self.win)
-            if n_box != None:
-                self.boxes.append(n_box)
-                n_box.draw()
-                return
-            raise Exception("Error - box object not added")
+            if self.hitbox_modify_mode == 'create':
+                n_box = None
+                match self.create_mode:
+                    case 'hitbox':
+                        n_box = Hitbox(event.x,event.y, 50, 50, self.win)
+                    case 'hurtbox':
+                        n_box = Hurtbox(event.x,event.y, 50, 50, self.win)
+                if n_box != None:
+                    self.boxes.append(n_box)
+                    n_box.draw()
+                    return
+                raise Exception("Error - box object not added")
+            elif self.hitbox_modify_mode == 'disable':
+                items = self.win.get_canvas().find_overlapping(event.x-1,event.y-1, event.x+1, event.y+1)
+                if len(items) != 0:
+                    target = items[-1]
+                    box_target = self.get_box_by_canvas_id(target)
+                    if box_target != None:
+                        if box_target.is_enabled:
+                            box_target.disable_self()
+                        else:
+                            box_target.enable_self()
+            elif self.hitbox_modify_mode == 'delete':
+                items = self.win.get_canvas().find_overlapping(event.x-1,event.y-1, event.x+1, event.y+1)
+                if len(items) != 0:
+                    target = items[-1]
+                    box_target = self.get_box_by_canvas_id(target)
+                    if box_target != None:
+                        self.boxes.remove(box_target)
+                        box_target.delete_self()
     
 
     def left_click_event(self, event):
