@@ -55,7 +55,8 @@ class Window():
     
 
     def draw_rect(self, x1, y1, x2, y2, color):
-        self.__canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
+        id = self.__canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
+        return id
 
 
     def draw_text(self,x,y,text_obj):

@@ -17,6 +17,10 @@ class Box():
         self.can_move = False
         
 
+    def copy(self):
+        raise NotImplementedError("Copy function not implemented in base class")
+
+
     def set_position(self,x,y):
         self.x = x
         self.y = y
@@ -39,10 +43,8 @@ class Box():
         if self.border_id != -1:
             self.win.get_canvas().delete(self.border_id)
         if self.can_move:
-            print("Drawing active hitbox")
             self.box_id, self.border_id = self.win.draw_box(self, draw_border=True)
         else:
-            print("Drawing inactive hitbox")
             self.box_id = self.win.draw_box(self)
 
 
@@ -51,6 +53,14 @@ class Hitbox(Box):
         super().__init__(x, y, width, height, (255, 0, 0, 100), win)
     
 
+    def copy(self):
+        return Hitbox(self.x, self.y, self.width, self.height, self.win)
+    
+
 class Hurtbox(Box):
     def __init__(self, x, y, width, height, win):
         super().__init__(x, y, width, height, (0,255,0,100), win)
+    
+
+    def copy(self):
+        return Hurtbox(self.x, self.y, self.width, self.height, self.win)

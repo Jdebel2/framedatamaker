@@ -14,6 +14,8 @@ class Editor():
         self.moving_box = False
         self.moving_box_origin_diff = [0,0]
         self.current_selected_box = None
+        self.ghost_index = -1
+        self.ghost_box = None
     
 
     def load_data(self, spritesheet, path):
@@ -21,6 +23,7 @@ class Editor():
         self.timeline.load_data(self.animation)
         self.win.get_canvas().bind("<Button-1>", self.left_click_event)
         self.win.get_canvas().bind("<ButtonRelease-1>", self.left_click_release_event)
+        self.win.get_canvas().bind("<B1-Motion>", self.left_click_hold_event)
         self.win.get_canvas().bind("<Button-2>", self.right_click_event)
         self.win.get_canvas().bind("<Button-3>", self.right_click_event)
         self.switch_btn = FDMButton("Create Hitbox", 20, 40, 12, 1, ButtonFunction.SWITCH_BOX_TYPE, self.win, self)
@@ -78,11 +81,34 @@ class Editor():
         if not self.moving_box:
             return
 
+        self.ghost_box = None
+        self.win.get_canvas().delete(self.ghost_index)
+        self.ghost_index = -1
         new_x = event.x - self.moving_box_origin_diff[0]
         new_y = event.y - self.moving_box_origin_diff[1]
         print(f"new position: {new_x}, {new_y}")
         self.current_selected_box.set_position(new_x, new_y)
         self.current_selected_box.draw()
+
+
+    def left_click_hold_event(self, event):
+        if event.y >= self.timeline.timeline_height-50:
+            return
+        if self.current_selected_box == None:
+            return
+        if not self.moving_box:
+            return
+        
+        if self.ghost_index != -1:
+            self.win.get_canvas().delete(self.ghost_index)
+        ghost_x = event.x - self.moving_box_origin_diff[0]
+        ghost_y = event.y - self.moving_box_origin_diff[1]
+        if self.ghost_box == None:
+            self.ghost_box = self.current_selected_box.copy()
+        self.ghost_box.x = ghost_x
+        self.ghost_box.y = ghost_y
+        self.ghost_box.can_move = False
+        self.ghost_index = self.ghost_box.draw()
 
     
     def get_box_by_canvas_id(self, canvas_id):
