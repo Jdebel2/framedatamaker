@@ -8,6 +8,8 @@ def main():
     btn.draw()
     btnSave = FDMButton('Save', 80, 20, 6, 1, ButtonFunction.SAVE, win, editor=editor)
     btnSave.draw()
+    btnLoad = FDMButton('Load', 140, 20, 6, 1, ButtonFunction.LOAD, win, editor=editor)
+    btnLoad.draw()
     win.mainloop()
 
 if __name__ == '__main__':

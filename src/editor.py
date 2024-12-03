@@ -311,11 +311,10 @@ class Editor():
         self.animation.draw()
         self.timeline.draw_frame_indicator()
         for flag in self.flags:
-            print(flag.frame_changes[frame])
-            if 'position' in flag.frame_changes[frame]:
-                change = flag.frame_changes[frame]['position']
+            if 'editor_position' in flag.frame_changes[frame]:
+                change = flag.frame_changes[frame]['editor_position']
                 flag.box.set_position(change[0], change[1])
-            elif 'scale' in flag.frame_changes[frame]:
+            if 'scale' in flag.frame_changes[frame]:
                 change = flag.frame_changes[frame]['scale']
                 flag.box.set_scale(change[0], change[1])
             if 'enabled' in flag.frame_changes[frame]:
@@ -332,3 +331,24 @@ class Editor():
         self.timeline.current_index = frame
         if self.timeline.update_index_range():
             self.timeline.draw()
+    
+
+    def create_box_on_load(self, x, y, type):
+        n_box = None
+        match type:
+            case 'hitbox':
+                n_box = Hitbox(x,y, 50, 50, self.win)
+            case 'hurtbox':
+                n_box = Hurtbox(x,y, 50, 50, self.win)
+        if n_box != None:
+            self.boxes.append(n_box)
+            n_flag = Flag(n_box, self.create_mode, len(self.animation.sprites))
+            self.flags.append(n_flag)
+            return n_box, n_flag
+        raise Exception("Error - box object not added")
+
+    def get_flag_from_box(self, box):
+        for flag in self.flags:
+            if flag.box == box:
+                return flag
+        return None

@@ -2,6 +2,7 @@ from tkinter import Tk, Canvas, BOTH, NW, Label
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from PIL import Image, ImageTk
 from enum import Enum
+import json
 
 class ButtonFunction(Enum):
     NEW=1
@@ -129,6 +130,8 @@ class FDMButton():
                 cmnd=self.switch_box_type
             case ButtonFunction.SAVE:
                 cmnd=self.save_editor_progress
+            case ButtonFunction.LOAD:
+                cmnd=self.load_editor_progress
             case _:
                 raise NotImplementedError("Not yet implemented")
             
@@ -203,7 +206,7 @@ class FDMButton():
                 f.write('{')
                 f.write(f'\"img_path\":\"{self.editor.image_file_path}\",\n')
                 f.write(f'\"origin_point\":[{self.editor.origin_point.x}, {self.editor.origin_point.y}],\n')
-                f.write(f'\"hitbox_flag_data\": ')
+                f.write(f'\"hitbox_flag_data\": [')
                 hitbox_flags = []
                 hurtbox_flags = []
                 for flag in self.editor.flags:
@@ -235,8 +238,9 @@ class FDMButton():
                         if 'scale' in change:
                             f.write(f',\"scale\":{change['scale']}')
                         f.write('}')
-                    f.write(f'],\n')
-                f.write(f'\"hurtbox_flag_data\": ')
+                    f.write(f']')
+                f.write('],\n')
+                f.write(f'\"hurtbox_flag_data\": [')
                 is_first_flag = True
                 for flag in hurtbox_flags:
                     if is_first_flag:
@@ -260,5 +264,51 @@ class FDMButton():
                         if 'scale' in change:
                             f.write(f',\"scale\":{change['scale']}')
                         f.write('}')
-                    f.write(f']\n')
+                    f.write(f']')
+                f.write(']')
                 f.write('}')
+
+
+    def load_editor_progress(self):
+        filename = askopenfilename(title="Open Frame Data Progress File", filetypes=[("JSON files", "*.json")])
+        if not filename:
+            return
+        with open(filename) as f:
+            file_data = json.load(f)
+            self.editor.image_file_path = file_data['img_path']
+            img = Image.open(file_data['img_path'])
+            self.editor.load_data(img, file_data['img_path'])
+            self.editor.animation.draw()
+            self.editor.timeline.draw()
+            self.editor.origin_point.set_position(file_data['origin_point'][0], file_data['origin_point'][1])
+            for hitbox_flags in file_data['hitbox_flag_data']:
+                n_box, n_flag = self.editor.create_box_on_load(0,0,'hitbox')
+                for change_idx in range(len(hitbox_flags)):
+                    change = hitbox_flags[change_idx]
+                    n_change = {}
+                    if 'enabled' in change:
+                        enable = True if change['enabled'] == 'True' else False
+                        n_change['enabled'] = enable
+                    if 'position' in change:
+                        n_change['position'] = change['position']
+                    if 'editor_position' in change:
+                        n_change['editor_position'] = change['editor_position']
+                    if 'scale' in change:
+                        n_change['scale'] = change['scale']
+                    n_flag.frame_changes[change_idx] = n_change
+            for hurtbox_flags in file_data['hurtbox_flag_data']:
+                n_box, n_flag = self.editor.create_box_on_load(0,0,'hurtbox')
+                for change_idx in range(len(hurtbox_flags)):
+                    change = hurtbox_flags[change_idx]
+                    n_change = {}
+                    if 'enabled' in change:
+                        enable = True if change['enabled'] == 'True' else False
+                        n_change['enabled'] = enable
+                    if 'position' in change:
+                        n_change['position'] = change['position']
+                    if 'editor_position' in change:
+                        n_change['editor_position'] = change['editor_position']
+                    if 'scale' in change:
+                        n_change['scale'] = change['scale']
+                    n_flag.frame_changes[change_idx] = n_change
+            self.editor.jump_to(0)
