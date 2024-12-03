@@ -2,6 +2,7 @@ from animation import Animation
 from timeline import Timeline
 from graphics import FDMButton, ButtonFunction
 from box import Hitbox, Hurtbox
+from flag import Flag
 
 class Editor():
     def __init__(self, win):
@@ -9,6 +10,7 @@ class Editor():
         self.timeline = Timeline(self, win)
         self.win = win
         self.boxes = []
+        self.flags = []
         self.create_mode = 'hitbox'
         self.hitbox_modify_mode = 'create'
         self.adjust_mode = 'all'
@@ -55,6 +57,10 @@ class Editor():
         elif event.char == 'c':
             self.hitbox_modify_mode = 'delete'
             print('Adjust hitbox modify mode set: delete')
+        elif event.char == 'p':
+            for flag in self.flags:
+                print(flag.type)
+                print(flag.frame_changes)
 
 
     def right_click_event(self, event):
@@ -68,6 +74,7 @@ class Editor():
                         n_box = Hurtbox(event.x,event.y, 50, 50, self.win)
                 if n_box != None:
                     self.boxes.append(n_box)
+                    self.flags.append(Flag(n_box, self.create_mode, len(self.animation.sprites)))
                     n_box.draw()
                     return
                 raise Exception("Error - box object not added")
@@ -81,12 +88,20 @@ class Editor():
                             box_target.disable_self()
                         else:
                             box_target.enable_self()
+                        for flag in self.flags:
+                            if flag.box == box_target:
+                                flag.update_is_enabled_change_at_frame(self.timeline.current_index, box_target.is_enabled)
+                                return
             elif self.hitbox_modify_mode == 'delete':
                 items = self.win.get_canvas().find_overlapping(event.x-1,event.y-1, event.x+1, event.y+1)
                 if len(items) != 0:
                     target = items[-1]
                     box_target = self.get_box_by_canvas_id(target)
                     if box_target != None:
+                        for flag in self.flags:
+                            if flag.box == box_target:
+                                self.flags.remove(flag)
+                                break
                         self.boxes.remove(box_target)
                         box_target.delete_self()
     
@@ -167,6 +182,12 @@ class Editor():
             self.current_selected_box.draw()
             self.moving_box_corner = False
             print(f"new scale: {new_width}, {new_height}")
+            for flag in self.flags:
+                if flag.box == self.current_selected_box:
+                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y])
+                    flag.update_scale_change_at_frame(self.timeline.current_index, [new_width, new_height])
+                    flag.update_is_enabled_change_at_frame(self.timeline.current_index, self.current_selected_box.is_enabled)
+                    return
             return
 
         if self.moving_box:
@@ -178,6 +199,11 @@ class Editor():
             print(f"new position: {new_x}, {new_y}")
             self.current_selected_box.set_position(new_x, new_y)
             self.current_selected_box.draw()
+            for flag in self.flags:
+                if flag.box == self.current_selected_box:
+                    flag.update_position_change_at_frame(self.timeline.current_index, [new_x, new_y])
+                    flag.update_is_enabled_change_at_frame(self.timeline.current_index, self.current_selected_box.is_enabled)
+                    return
 
 
     def left_click_hold_event(self, event):
@@ -244,6 +270,20 @@ class Editor():
         self.animation.current_sprite = self.animation.sprites[frame]
         self.animation.draw()
         self.timeline.draw_frame_indicator()
+        for flag in self.flags:
+            print(flag.frame_changes[frame])
+            if 'position' in flag.frame_changes[frame]:
+                change = flag.frame_changes[frame]['position']
+                flag.box.set_position(change[0], change[1])
+            elif 'scale' in flag.frame_changes[frame]:
+                change = flag.frame_changes[frame]['scale']
+                flag.box.set_scale(change[0], change[1])
+            if 'enabled' in flag.frame_changes[frame]:
+                change = flag.frame_changes[frame]['enabled']
+                if change:
+                    flag.box.enable_self()
+                else:
+                    flag.box.disable_self()
         for box in self.boxes:
             box.draw()
     
