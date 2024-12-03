@@ -1,5 +1,5 @@
 from tkinter import Tk, Canvas, BOTH, NW, Label
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from PIL import Image, ImageTk
 from enum import Enum
 
@@ -10,6 +10,7 @@ class ButtonFunction(Enum):
     CLICK_LEFT_BUTTON_TIMELINE=4
     CLICK_RIGHT_BUTTON_TIMELINE=5
     SWITCH_BOX_TYPE=6
+    SAVE=7
 
 
 class Window():
@@ -126,6 +127,8 @@ class FDMButton():
                 cmnd=self.click_timeline_right_button
             case ButtonFunction.SWITCH_BOX_TYPE:
                 cmnd=self.switch_box_type
+            case ButtonFunction.SAVE:
+                cmnd=self.save_editor_progress
             case _:
                 raise NotImplementedError("Not yet implemented")
             
@@ -164,6 +167,7 @@ class FDMButton():
         filename = askopenfilename(title="Open Image File", filetypes=[("Image files", "*.png")])
         if not filename:
             return
+        self.editor.image_file_path = filename
         img = Image.open(filename)
         self.editor.load_data(img, filename)
         self.editor.animation.draw()
@@ -188,3 +192,73 @@ class FDMButton():
             self.editor.switch_create_mode('hurtbox')
         elif self.editor.create_mode == 'hurtbox':
             self.editor.switch_create_mode('hitbox')
+    
+    
+    def save_editor_progress(self):
+        if self.editor.is_editor_running:
+            filename = asksaveasfilename(initialfile = "frame_data_editor_progress",title = "Select file",filetypes = (("JSON files","*.json"),("all files","*.*")))
+            if not filename:
+                return
+            with open(filename, 'w') as f:
+                f.write('{')
+                f.write(f'\"img_path\":\"{self.editor.image_file_path}\",\n')
+                f.write(f'\"origin_point\":[{self.editor.origin_point.x}, {self.editor.origin_point.y}],\n')
+                f.write(f'\"hitbox_flag_data\": ')
+                hitbox_flags = []
+                hurtbox_flags = []
+                for flag in self.editor.flags:
+                    if flag.type == 'hitbox':
+                        hitbox_flags.append(flag)
+                for flag in self.editor.flags:
+                    if flag.type == 'hurtbox':
+                        hurtbox_flags.append(flag)
+                is_first_flag = True
+                for flag in hitbox_flags:
+                    if is_first_flag:
+                        is_first_flag = False
+                    else:
+                        f.write(',')
+                    f.write('[')
+                    is_first_change = True
+                    for change in flag.frame_changes:
+                        if is_first_change:
+                            is_first_change = False
+                        else:
+                            f.write(',')
+                        f.write('{')
+                        if 'enabled' in change:
+                            f.write(f'\"enabled\":\"{change['enabled']}\"')
+                        if 'position' in change:
+                            f.write(f',\"position\":{change['position']}')
+                        if 'editor_position' in change:
+                            f.write(f',\"editor_position\":{change['editor_position']}')
+                        if 'scale' in change:
+                            f.write(f',\"scale\":{change['scale']}')
+                        f.write('}')
+                    f.write(f'],\n')
+                f.write(f'\"hurtbox_flag_data\": ')
+                is_first_flag = True
+                for flag in hurtbox_flags:
+                    if is_first_flag:
+                        is_first_flag = False
+                    else:
+                        f.write(',')
+                    f.write('[')
+                    is_first_change = True
+                    for change in flag.frame_changes:
+                        if is_first_change:
+                            is_first_change = False
+                        else:
+                            f.write(',')
+                        f.write('{')
+                        if 'enabled' in change:
+                            f.write(f'\"enabled\":\"{change['enabled']}\"')
+                        if 'position' in change:
+                            f.write(f',\"position\":{change['position']}')
+                        if 'editor_position' in change:
+                            f.write(f',\"editor_position\":{change['editor_position']}')
+                        if 'scale' in change:
+                            f.write(f',\"scale\":{change['scale']}')
+                        f.write('}')
+                    f.write(f']\n')
+                f.write('}')

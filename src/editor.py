@@ -8,6 +8,7 @@ from origin_point import OriginPoint
 
 class Editor():
     def __init__(self, win):
+        self.is_editor_running = False
         self.animation = Animation(win)
         self.timeline = Timeline(self, win)
         self.win = win
@@ -30,7 +31,8 @@ class Editor():
         self.ghost_box = None
         self.left_click_label = Label(self.win.get_root(), text=f'Left Click - Hitbox Adjust Properties: All', foreground='white', background='#000000')
         self.right_click_label = Label(self.win.get_root(), text=f'Right Click - Hitbox Modify Mode: Create', foreground='white', background='#000000')
-    
+        self.image_file_path = ""
+
 
     def load_data(self, spritesheet, path):
         self.animation.load_data(spritesheet, path)
@@ -46,6 +48,7 @@ class Editor():
         self.origin_point.draw()
         self.left_click_label_id = self.win.draw_text(300, 20, self.left_click_label)
         self.right_click_label_id = self.win.draw_text(300, 40, self.right_click_label)
+        self.is_editor_running = True
 
 
     def key_press_event(self, event):
